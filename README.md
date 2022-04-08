@@ -30,3 +30,6 @@ The Vagrant machine definition file is available under folder `/vm`.
   - use `vagrant halt` to stop the VM, `vagrant destroy` to destroy it
 
 For more details about Vagrant, [check the official documentation](https://www.vagrantup.com/docs/installation).
+
+### Testing
+- assuming that `make` is available on the target development environment, run `make` from the project root to run tests
