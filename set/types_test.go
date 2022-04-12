@@ -6,22 +6,22 @@ import (
 
 func TestSetType_String(t *testing.T) {
 	tests := map[SetType]string{
-		Bitmap_IP:         "bitmap:ip",
-		Bitmap_IP_MAC:     "bitmap:ip,mac",
-		Bitmap_Port:       "bitmap:port",
-		Hash_IP:           "hash:ip",
-		Hash_MAC:          "hash:mac",
-		Hash_IP_MAC:       "hash:ip,mac",
-		Hash_Net:          "hash:net",
-		Hash_Net_Net:      "hash:net,net",
-		Hash_IP_Port:      "hash:ip,port",
-		Hash_Net_PORT:     "hash:net,port",
-		Hash_IP_Port_IP:   "hash:ip,port,ip",
-		Hash_IP_Port_Net:  "hash:ip,port,net",
-		Hash_IP_Mark:      "hash:ip,mark",
-		Hash_Net_Port_Net: "hash:net,port,net",
-		Hash_Net_IFace:    "hash:net,iface",
-		List_Set:          "list:set",
+		SetTypeBitmapIP:       "bitmap:ip",
+		SetTypeBitmapIPMAC:    "bitmap:ip,mac",
+		SetTypeBitmapPort:     "bitmap:port",
+		SetTypeHashIP:         "hash:ip",
+		SetTypeHashIPMAC:      "hash:ip,mac",
+		SetTypeHashIPPort:     "hash:ip,port",
+		SetTypeHashIPPortIP:   "hash:ip,port,ip",
+		SetTypeHashIPPortNet:  "hash:ip,port,net",
+		SetTypeHashIPMark:     "hash:ip,mark",
+		SetTypeHashMAC:        "hash:mac",
+		SetTypeHashNet:        "hash:net",
+		SetTypeHashNetNet:     "hash:net,net",
+		SetTypeHashNetPort:    "hash:net,port",
+		SetTypeHashNetPortNet: "hash:net,port,net",
+		SetTypeHashNetIFace:   "hash:net,iface",
+		SetTypeListSet:        "list:set",
 	}
 
 	// Populate tests with invalid values.
