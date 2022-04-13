@@ -2,10 +2,16 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/francescocolleoni/go-ipset/set"
 )
+
+const ipRangeMatch = `^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`
+const ipCidrRangeMatch = `^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/([1-9]|1[0-9]|2[0-9]|3[0-2])$`
+const portRangeMatch = `^\d+-\d+$`
 
 // intOption returns the representation of an ipset command numeric option.
 // If the value is negative, the result string will be empty.
@@ -27,6 +33,24 @@ func flagOption(argName string, flag bool) []string {
 	}
 }
 
+// netmaskOption returns formatted ipset option netmask.
+func netmaskOption(value int) []string {
+	if value >= 1 && value <= 32 {
+		return intOption("netmask", value)
+	} else {
+		return []string{}
+	}
+}
+
+// markmaskOption returns formatted ipset option markmask.
+func markmaskOption(value int) []string {
+	if value >= 0 && value <= 4294967295 {
+		return intOption("markmask", value)
+	} else {
+		return []string{}
+	}
+}
+
 // timeoutOption returns formatted ipset option timeout.
 func timeoutOption(value int) []string {
 	return intOption("timeout", value)
@@ -35,6 +59,11 @@ func timeoutOption(value int) []string {
 // hashSizeOption returns formatted ipset option hashsize.
 func hashSizeOption(value int) []string {
 	return intOption("hashsize", value)
+}
+
+// sizeOption returns formatted ipset option size.
+func sizeOption(value int) []string {
+	return intOption("size", value)
 }
 
 // maxElementsOption returns formatted ipset option maxelem.
@@ -59,7 +88,7 @@ func skbInfoOption(flag bool) []string {
 
 // protocolFamilyOption returns formatted ipset option skbinfo family.
 func protocolFamilyOption(protocol ProtocolFamily, setType set.SetType) []string {
-	if protocol != ProtocolFamilyINet6 {
+	if protocol == ProtocolFamilyDefault {
 		return []string{} // Default protocol is always inet.
 	}
 
@@ -70,6 +99,48 @@ func protocolFamilyOption(protocol ProtocolFamily, setType set.SetType) []string
 		set.SetTypeHashIPPort, set.SetTypeHashIPPortIP, set.SetTypeHashIPPortNet, set.SetTypeHashIPMark:
 		return []string{"family", protocol.String()}
 	default:
+		return []string{}
+	}
+}
+
+// rangeIPOption returns formatted ipset option range.
+// Parameter rangeDef format must be either <ip>-<ip> or <ip>/<cidr>.
+// IPs must be expressed as IPv4 and CIDR must be a numeric value in [1-32].
+// Any other format will return an empty array of arguments.
+func rangeIPOption(rangeDef string) []string {
+	if regexp.MustCompile(ipRangeMatch).Match([]byte(rangeDef)) {
+		return []string{"range", rangeDef}
+	} else if regexp.MustCompile(ipCidrRangeMatch).Match([]byte(rangeDef)) {
+		return []string{"range", rangeDef}
+	} else {
+		return []string{}
+	}
+}
+
+// rangePortOption returns formatted ipset option range.
+// Parameter rangeDef format must be <port>-<port>, where port numbers are defined in [0, 65535] range.
+// Any other format will return an empty array of arguments.
+func rangePortOption(rangeDef string) []string {
+	parsePort := func(raw string) int {
+		if val, err := strconv.Atoi(raw); err != nil {
+			return -1
+		} else {
+			return val
+		}
+	}
+
+	if regexp.MustCompile(portRangeMatch).Match([]byte(rangeDef)) {
+		ports := strings.Split(rangeDef, "-")
+
+		portA := parsePort(ports[0])
+		portB := parsePort(ports[1])
+
+		if portA < 0 || portA > 65535 || portB < 0 || portB > 65535 {
+			return []string{}
+		} else {
+			return []string{"range", rangeDef}
+		}
+	} else {
 		return []string{}
 	}
 }

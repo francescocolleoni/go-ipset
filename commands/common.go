@@ -50,6 +50,9 @@ type Command interface {
 	// This method returns an array of arrays of arguments, supporting multiple calls to ipset.
 	TranslateToIPSetArgs() [][]string
 
+	// IncludesMandatoryOptions returns true if mandatory options of the command are defined.
+	IncludesMandatoryOptions() bool
+
 	// Run sends to ipset a command, which may consist of many calls to ipset.
 	Run() error
 }

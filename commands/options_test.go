@@ -18,8 +18,17 @@ func TestOptions(t *testing.T) {
 		{handler: func() []string { return timeoutOption(0) }},
 		{func() []string { return timeoutOption(10) }, []string{"timeout", "10"}},
 
+		{handler: func() []string { return netmaskOption(0) }},
+		{func() []string { return netmaskOption(10) }, []string{"netmask", "10"}},
+
+		{handler: func() []string { return markmaskOption(-1) }},
+		{func() []string { return markmaskOption(10) }, []string{"markmask", "10"}},
+
 		{handler: func() []string { return hashSizeOption(0) }},
 		{func() []string { return hashSizeOption(10) }, []string{"hashsize", "10"}},
+
+		{handler: func() []string { return sizeOption(0) }},
+		{func() []string { return sizeOption(10) }, []string{"size", "10"}},
 
 		{handler: func() []string { return maxElementsOption(0) }},
 		{func() []string { return maxElementsOption(10) }, []string{"maxelem", "10"}},
@@ -38,6 +47,12 @@ func TestOptions(t *testing.T) {
 
 		{handler: func() []string { return commentOption("") }},
 		{func() []string { return commentOption(`this is a \"comment"`) }, []string{"comment", `"this is a comment"`}},
+
+		{handler: func() []string { return rangeIPOption("invalid range") }},
+		{handler: func() []string { return rangePortOption("invalid range") }},
+		{func() []string { return rangeIPOption("1.1.1.1-2.2.2.2") }, []string{"range", "1.1.1.1-2.2.2.2"}},
+		{func() []string { return rangeIPOption("1.1.1.1/31") }, []string{"range", "1.1.1.1/31"}},
+		{func() []string { return rangePortOption("12345-56789") }, []string{"range", "12345-56789"}},
 	}
 
 	for _, test := range tests {
@@ -81,7 +96,7 @@ func TestProtocolFamilyOption(t *testing.T) {
 		protocol := anyProtocol()
 		result := fmt.Sprintf("%v", protocolFamilyOption(protocol, key))
 
-		if expectsOption && protocol == ProtocolFamilyINet6 {
+		if expectsOption && protocol != ProtocolFamilyDefault {
 			expectation = fmt.Sprintf("%v", []string{"family", protocol.String()})
 		}
 
