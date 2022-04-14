@@ -19,6 +19,18 @@ func TestIPSetIsAvailable(t *testing.T) {
 	}
 }
 
+func TestIPSetError(t *testing.T) {
+	// Important: this test relies on ipset being available on the environment running tests.
+
+	if out, err := RunIPSet("dummycommand"); err == nil {
+		t.Error("expectation failed: ipset should return an error")
+	} else if out.Error.Error() != `ipset returned error "No command specified: unknown argument dummycommand"` {
+		t.Errorf(`unexpected error message: received %s`, out.Error.Error())
+	} else if out.In != "ipset dummycommand" {
+		t.Errorf("unexpected input: received %s", out.In)
+	}
+}
+
 func TestRunCommand(t *testing.T) {
 	type test struct {
 		cmd          string

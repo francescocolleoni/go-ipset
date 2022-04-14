@@ -155,12 +155,12 @@ func (c *CreateSet) IncludesMandatoryOptions() bool {
 }
 
 // CreateSet implementation of Run.
-func (c *CreateSet) Run() ([]byte, error) {
-	if bytes, err := utilities.RunIPSet(c.TranslateToCommandLine()[0]...); err != nil { // Expects just one line of arguments.
-		return bytes, err
-	} else {
-		return bytes, nil
+func (c *CreateSet) Run() error {
+	if out, err := utilities.RunIPSet(c.TranslateToCommandLine()[0]...); err != nil { // Expects just one line of arguments.
+		return out.Error
 	}
+
+	return nil
 }
 
 // New Create*type* set.

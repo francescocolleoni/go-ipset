@@ -483,26 +483,26 @@ func TestCreateSet(t *testing.T) {
 		commandLine = strings.ReplaceAll(commandLine, "]]", "")
 
 		t.Logf("testing ipset %s", commandLine)
-		if _, err := test.command.Run(); err != nil {
+		if err := test.command.Run(); err != nil {
 			t.Error(err)
-		} else if out, err := utilities.RunIPSet("list", test.command.Name); err != nil {
+		} else if result, err := utilities.RunIPSet("list", test.command.Name); err != nil {
 			t.Error(err)
 		} else {
 			nameRegex := regexp.MustCompile("Name:.+" + test.command.Name)
-			if !nameRegex.Match(out) {
+			if !nameRegex.Match([]byte(result.Out)) {
 				t.Errorf("set name did not match")
 				continue
 			}
 
 			typeRegex := regexp.MustCompile("Type:.+" + test.setType.String())
-			if !typeRegex.Match(out) {
+			if !typeRegex.Match([]byte(result.Out)) {
 				t.Errorf("set type did not match")
 				continue
 			}
 
 			for _, pattern := range test.expectsHeaders {
 				pattern := "Header:.+" + pattern
-				if !regexp.MustCompile(pattern).Match(out) {
+				if !regexp.MustCompile(pattern).Match([]byte(result.Out)) {
 					t.Errorf(`header does not contain pattern "%s"`, pattern)
 				}
 			}
