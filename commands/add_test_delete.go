@@ -6,10 +6,10 @@ import (
 	"github.com/francescocolleoni/go-ipset/set"
 )
 
-// AddDeleteEntry defines ipset commands add or delete.
+// AddTestDeleteEntry defines ipset commands add or delete.
 // This struct serves multiple purposes because ipset arguments for these
 // operations are always the same for all set types.
-type AddDeleteEntry struct {
+type AddTestDeleteEntry struct {
 	Command CommandName
 	Name    string
 	Type    set.SetType
@@ -23,49 +23,70 @@ type AddDeleteEntry struct {
 // NewAddEntry returns an add entry command.
 // In contrast with create command, adding entries always require one parameter, that will
 // be validated and parsed differently according to the source set type.
-func NewAddEntry(name string, setType set.SetType, entry string) *AddDeleteEntry {
-	return &AddDeleteEntry{Command: CommandNameAdd, Name: name, Type: setType, Entry: entry}
+func NewAddEntry(name string, setType set.SetType, entry string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameAdd, Name: name, Type: setType, Entry: entry}
 }
 
 // NewAddListEntry returns an add entry command for a list:set set.
-func NewAddListEntry(name string) *AddDeleteEntry {
-	return &AddDeleteEntry{Command: CommandNameAdd, Name: name, Type: set.SetTypeListSet}
+func NewAddListEntry(name string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameAdd, Name: name, Type: set.SetTypeListSet}
 }
 
 // NewAddListEntry returns an add entry command for a list:set set, setting "before" option.
-func NewAddListEntryBefore(name, beforeSet string) *AddDeleteEntry {
-	return &AddDeleteEntry{Command: CommandNameAdd, Name: name, Type: set.SetTypeListSet, BeforeSet: beforeSet}
+func NewAddListEntryBefore(name, beforeSet string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameAdd, Name: name, Type: set.SetTypeListSet, BeforeSet: beforeSet}
 }
 
 // NewAddListEntry returns an add entry command for a list:set set, setting "after" option.
-func NewAddListEntryAfter(name, afterSet string) *AddDeleteEntry {
-	return &AddDeleteEntry{Command: CommandNameAdd, Name: name, Type: set.SetTypeListSet, AfterSet: afterSet}
+func NewAddListEntryAfter(name, afterSet string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameAdd, Name: name, Type: set.SetTypeListSet, AfterSet: afterSet}
 }
 
-// NewDeleteEntry returns an delete entry command.
+// NewDeleteEntry returns a delete entry command.
 // In contrast with create command, removing entries always require one parameter, that will
 // be validated and parsed differently according to the source set type.
-func NewDeleteEntry(name string, setType set.SetType, entry string) *AddDeleteEntry {
-	return &AddDeleteEntry{Command: CommandNameDelete, Name: name, Type: setType, Entry: entry}
+func NewDeleteEntry(name string, setType set.SetType, entry string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameDelete, Name: name, Type: setType, Entry: entry}
 }
 
-// NewDeleteListEntry returns an add entry command for a list:set set.
-func NewDeleteListEntry(name string) *AddDeleteEntry {
-	return &AddDeleteEntry{Command: CommandNameDelete, Name: name, Type: set.SetTypeListSet}
+// NewDeleteListEntry returns a delete entry command for a list:set set.
+func NewDeleteListEntry(name string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameDelete, Name: name, Type: set.SetTypeListSet}
 }
 
-// NewDeleteListEntryBefore returns an add entry command for a list:set set, setting "before" option.
-func NewDeleteListEntryBefore(name, beforeSet string) *AddDeleteEntry {
-	return &AddDeleteEntry{Command: CommandNameDelete, Name: name, Type: set.SetTypeListSet, BeforeSet: beforeSet}
+// NewDeleteListEntryBefore returns a delete entry command for a list:set set, setting "before" option.
+func NewDeleteListEntryBefore(name, beforeSet string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameDelete, Name: name, Type: set.SetTypeListSet, BeforeSet: beforeSet}
 }
 
-// NewDeleteListEntryAfter returns an add entry command for a list:set set, setting "after" option.
-func NewDeleteListEntryAfter(name, afterSet string) *AddDeleteEntry {
-	return &AddDeleteEntry{Command: CommandNameDelete, Name: name, Type: set.SetTypeListSet, AfterSet: afterSet}
+// NewDeleteListEntryAfter returns a delete entry command for a list:set set, setting "after" option.
+func NewDeleteListEntryAfter(name, afterSet string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameDelete, Name: name, Type: set.SetTypeListSet, AfterSet: afterSet}
 }
 
-// AddDeleteEntry implementation of TranslateToIPSetArgs..
-func (c *AddDeleteEntry) TranslateToIPSetArgs() []string {
+// NewTestEntry returns a test entry command.
+// Similar to delete command, parameters will be validated and parsed differently according to the source set type.
+func NewTestEntry(name string, setType set.SetType, entry string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameTest, Name: name, Type: setType, Entry: entry}
+}
+
+// NewTestListEntry returns a test entry command for a list:set set.
+func NewTestListEntry(name string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameTest, Name: name, Type: set.SetTypeListSet}
+}
+
+// NewTestListEntryBefore returns a test entry command for a list:set set, setting "before" option.
+func NewTestListEntryBefore(name, beforeSet string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameTest, Name: name, Type: set.SetTypeListSet, BeforeSet: beforeSet}
+}
+
+// NewTestListEntryAfter returns a test entry command for a list:set set, setting "after" option.
+func NewTestListEntryAfter(name, afterSet string) *AddTestDeleteEntry {
+	return &AddTestDeleteEntry{Command: CommandNameTest, Name: name, Type: set.SetTypeListSet, AfterSet: afterSet}
+}
+
+// AddTestDeleteEntry implementation of TranslateToIPSetArgs..
+func (c *AddTestDeleteEntry) TranslateToIPSetArgs() []string {
 	makeArgs := func(args ...string) []string {
 		out := []string{c.Command.String(), c.Name}
 		return append(out, args...)
@@ -73,7 +94,11 @@ func (c *AddDeleteEntry) TranslateToIPSetArgs() []string {
 
 	switch c.Type {
 	case set.SetTypeBitmapIP:
-		if matchesTarget(c.Entry, "", ipMatch) ||
+		if c.Command == CommandNameTest {
+			if matchesTarget(c.Entry, "", ipMatch) {
+				return makeArgs(c.Entry) // This is the only supported scenario for test command and bitmap:ip.
+			}
+		} else if matchesTarget(c.Entry, "", ipMatch) ||
 			matchesTarget(c.Entry, "-", ipMatch, ipMatch) ||
 			matchesTarget(c.Entry, "", ipCidrMatch) {
 			return makeArgs(c.Entry)
@@ -86,7 +111,11 @@ func (c *AddDeleteEntry) TranslateToIPSetArgs() []string {
 		}
 
 	case set.SetTypeBitmapPort:
-		if matchesTarget(c.Entry, "", portMatch) ||
+		if c.Command == CommandNameTest {
+			if matchesTarget(c.Entry, "", portMatch) || matchesTarget(c.Entry, ":", protoMatch, portMatch) {
+				return makeArgs(c.Entry) // This is the only supported scenario for test command and bitmap:port.
+			}
+		} else if matchesTarget(c.Entry, "", portMatch) ||
 			matchesTarget(c.Entry, ":", protoMatch, portMatch) ||
 			matchesTarget(c.Entry, "-", portMatch, portMatch) ||
 			matchesTarget(c.Entry, ":", protoMatch, portMatch+"-"+portMatch) {
@@ -192,13 +221,13 @@ func (c *AddDeleteEntry) TranslateToIPSetArgs() []string {
 	return []string{}
 }
 
-// AddDeleteEntry implementation of ValidateOptions.
+// AddTestDeleteEntry implementation of ValidateOptions.
 // This function will return true iif result of TranslateToIPSetArgs returns a non-empty array of arguments.
-func (c *AddDeleteEntry) IncludesMandatoryOptions() bool {
+func (c *AddTestDeleteEntry) IncludesMandatoryOptions() bool {
 	return len(c.TranslateToIPSetArgs()) > 0
 }
 
-// AddDeleteEntry implementation of Run.
-func (c *AddDeleteEntry) Run() error {
+// AddTestDeleteEntry implementation of Run.
+func (c *AddTestDeleteEntry) Run() error {
 	return errors.New("not implemented")
 }

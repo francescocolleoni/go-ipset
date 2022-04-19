@@ -167,7 +167,9 @@ func matchesTarget(target, separator string, matchComponents ...string) bool {
 		return false
 	}
 
-	return regexp.MustCompile(strings.Join(matchComponents, separator)).MatchString(target)
+	return regexp.MustCompile(
+		"^" + strings.Join(matchComponents, separator) + "$",
+	).MatchString(target)
 }
 
 // Create matches.

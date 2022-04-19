@@ -9,7 +9,7 @@ import (
 
 func TestAddSetTranslateToCommandLine(t *testing.T) {
 	type test struct {
-		command *AddDeleteEntry
+		command *AddTestDeleteEntry
 		args    []string
 	}
 
@@ -95,7 +95,7 @@ func TestAddSetTranslateToCommandLine(t *testing.T) {
 
 func TestDeleteSetTranslateToCommandLine(t *testing.T) {
 	type test struct {
-		command *AddDeleteEntry
+		command *AddTestDeleteEntry
 		args    []string
 	}
 
@@ -181,7 +181,7 @@ func TestDeleteSetTranslateToCommandLine(t *testing.T) {
 
 func TestAddSetValidate(t *testing.T) {
 	type test struct {
-		command *AddDeleteEntry
+		command *AddTestDeleteEntry
 		expects bool
 	}
 
@@ -325,7 +325,7 @@ func TestAddSetValidate(t *testing.T) {
 
 func TestDeleteSetValidate(t *testing.T) {
 	type test struct {
-		command *AddDeleteEntry
+		command *AddTestDeleteEntry
 		expects bool
 	}
 
@@ -457,6 +457,149 @@ func TestDeleteSetValidate(t *testing.T) {
 		{NewDeleteListEntryAfter("", "otherset"), false},
 		{NewDeleteListEntryAfter(setName, ""), true},
 		{NewDeleteListEntryAfter("", "otherset"), false},
+	}
+
+	for i, test := range tests {
+		result := test.command.IncludesMandatoryOptions()
+		if result != test.expects {
+			t.Errorf("expectation %d failed: %v != %v (expected)", i+1, result, test.expects)
+		}
+	}
+}
+
+func TestTestSetValidate(t *testing.T) {
+	type test struct {
+		command *AddTestDeleteEntry
+		expects bool
+	}
+
+	const setName = "testset"
+	tests := []test{
+		// Valid.
+		{NewTestEntry(setName, set.SetTypeBitmapIP, "1.1.1.1"), true},
+
+		{NewTestEntry(setName, set.SetTypeBitmapIPMAC, "1.1.1.1"), true},
+		{NewTestEntry(setName, set.SetTypeBitmapIPMAC, "1.1.1.1,aa:bb:cc:11:22:33"), true},
+
+		{NewTestEntry(setName, set.SetTypeBitmapPort, "12345"), true},
+		{NewTestEntry(setName, set.SetTypeBitmapPort, "tcp:56789"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashIP, "1.1.1.1"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashIPMAC, "1.1.1.1,aa:bb:cc:11:22:33"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashIPPort, "1.1.1.1,56789"), true},
+		{NewTestEntry(setName, set.SetTypeHashIPPort, "1.1.1.1,tcp:56789"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashIPPortIP, "1.1.1.1,56789,2.2.2.2"), true},
+		{NewTestEntry(setName, set.SetTypeHashIPPortIP, "1.1.1.1,tcp:56789,2.2.2.2"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashIPPortNet, "1.1.1.1,56789,2.2.2.2"), true},
+		{NewTestEntry(setName, set.SetTypeHashIPPortNet, "1.1.1.1,56789,2.2.2.2/10"), true},
+		{NewTestEntry(setName, set.SetTypeHashIPPortNet, "1.1.1.1,tcp:56789,2.2.2.2"), true},
+		{NewTestEntry(setName, set.SetTypeHashIPPortNet, "1.1.1.1,tcp:56789,2.2.2.2/10"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashIPMark, "1.1.1.1,10"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashMAC, "aa:bb:cc:11:22:33"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashNet, "1.1.1.1"), true},
+		{NewTestEntry(setName, set.SetTypeHashNet, "1.1.1.1/10"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashNetNet, "1.1.1.1,2.2.2.2"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetNet, "1.1.1.1,2.2.2.2/10"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetNet, "1.1.1.1/10,2.2.2.2"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetNet, "1.1.1.1/10,2.2.2.2/10"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashNetPort, "1.1.1.1,56789"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPort, "1.1.1.1,tcp:56789"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPort, "1.1.1.1/10,56789"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPort, "1.1.1.1/10,tcp:56789"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1,56789,2.2.2.2"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1,56789,2.2.2.2/10"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1,tcp:56789,2.2.2.2"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1,tcp:56789,2.2.2.2/10"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1/10,56789,2.2.2.2"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1/10,56789,2.2.2.2/10"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1/10,tcp:56789,2.2.2.2"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1/10,tcp:56789,2.2.2.2/10"), true},
+
+		{NewTestEntry(setName, set.SetTypeHashNetIFace, "1.1.1.1,eth0"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetIFace, "1.1.1.1,physdev:eth0"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetIFace, "1.1.1.1/10,eth0"), true},
+		{NewTestEntry(setName, set.SetTypeHashNetIFace, "1.1.1.1/10,physdev:eth0"), true},
+		{NewTestListEntry(setName), true},
+		{NewTestListEntryBefore(setName, "otherset"), true},
+		{NewTestListEntryAfter(setName, "otherset"), true},
+
+		// Not valid.
+		{NewTestEntry(setName, set.SetTypeBitmapIP, "invalid"), false},
+
+		{NewTestEntry(setName, set.SetTypeBitmapIP, "1.1.1.1-2.2.2.2"), false}, // Ranges are not supported.
+		{NewTestEntry(setName, set.SetTypeBitmapIP, "1.1.1.1/10"), false},      // Ranges are not supported.
+
+		{NewTestEntry(setName, set.SetTypeBitmapIPMAC, "invalid"), false},
+		{NewTestEntry(setName, set.SetTypeBitmapIPMAC, "invalid,invalidmac"), false},
+		{NewTestEntry(setName, set.SetTypeBitmapPort, "invalidport"), false},
+		{NewTestEntry(setName, set.SetTypeBitmapPort, "tcp:invalidport"), false},
+
+		{NewTestEntry(setName, set.SetTypeBitmapPort, "12345-56789"), false},                 // Ranges are not supported.
+		{NewTestEntry(setName, set.SetTypeBitmapPort, "tcp:12345-56789"), false},             // Ranges are not supported.
+		{NewTestEntry(setName, set.SetTypeBitmapPort, "invalidport-invalidport"), false},     // Ranges are not supported.
+		{NewTestEntry(setName, set.SetTypeBitmapPort, "tcp:invalidport-invalidport"), false}, // Ranges are not supported.
+
+		{NewTestEntry(setName, set.SetTypeHashIP, "invalid"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashIPMAC, "invalid,invalidmac"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashIPPort, "invalid,invalidport"), false},
+		{NewTestEntry(setName, set.SetTypeHashIPPort, "invalid,tcp:invalidport"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashIPPortIP, "invalid,invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashIPPortIP, "invalid,tcp:invalidport,invalid"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashIPPortNet, "invalid,invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashIPPortNet, "invalid,invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashIPPortNet, "invalid,tcp:invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashIPPortNet, "invalid,tcp:invalidport,invalid"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashIPMark, "invalid,10"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashMAC, "invalidmac"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashNet, "invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNet, "invalid/invalidport"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashNetNet, "invalid,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetNet, "invalid,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetNet, "invalid/invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetNet, "invalid/invalidport,invalid"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashNetPort, "invalid,invalidport"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPort, "invalid,tcp:invalidport"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPort, "invalid/invalidport,invalidport"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPort, "invalid/invalidport,tcp:invalidport"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "invalid,invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "invalid,invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "invalid,tcp:invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "invalid,tcp:invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "invalid/invalidport,invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "invalid/invalidport,invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "invalid/invalidport,tcp:invalidport,invalid"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetPortNet, "invalid/invalidport,tcp:invalidport,invalid"), false},
+
+		{NewTestEntry(setName, set.SetTypeHashNetIFace, "invalid,eth0"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetIFace, "invalid,physdev:eth0"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetIFace, "invalid/invalidport,eth0"), false},
+		{NewTestEntry(setName, set.SetTypeHashNetIFace, "invalid/invalidport,physdev:eth0"), false},
+
+		{NewTestListEntry(""), false},
+		{NewTestListEntryAfter(setName, ""), true},
+		{NewTestListEntryAfter("", "otherset"), false},
+		{NewTestListEntryAfter(setName, ""), true},
+		{NewTestListEntryAfter("", "otherset"), false},
 	}
 
 	for i, test := range tests {
