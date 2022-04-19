@@ -9,10 +9,6 @@ import (
 	"github.com/francescocolleoni/go-ipset/set"
 )
 
-const ipRangeMatch = `^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`
-const ipCidrRangeMatch = `^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/([1-9]|1[0-9]|2[0-9]|3[0-2])$`
-const portRangeMatch = `^\d+-\d+$`
-
 // intOption returns the representation of an ipset command numeric option.
 // If the value is negative, the result string will be empty.
 func intOption(argName string, value int) []string {
@@ -164,3 +160,27 @@ func commentOption(comment string) []string {
 		return []string{"comment", fmt.Sprintf(`"%s"`, comment)}
 	}
 }
+
+// matchesTarget returns true if the regex built by joining matchComponents with separator matches target.
+func matchesTarget(target, separator string, matchComponents ...string) bool {
+	if len(matchComponents) <= 0 {
+		return false
+	}
+
+	return regexp.MustCompile(strings.Join(matchComponents, separator)).MatchString(target)
+}
+
+// Create matches.
+const ipRangeMatch = `^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)-(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`
+const ipCidrRangeMatch = `^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/([1-9]|1[0-9]|2[0-9]|3[0-2])$`
+const portRangeMatch = `^\d+-\d+$`
+
+// Add / Delete / Test matches.
+const ipMatch = `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)`
+const ipCidrMatch = `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/([1-9]|1[0-9]|2[0-9]|3[0-2])`
+const macMatch = `[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}`
+const portMatch = `\d+`
+const protoMatch = `.+`
+const markMatch = `\d+`
+const ifaceMatch = `.+`
+const physdevMatch = `physdev`

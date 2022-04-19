@@ -85,7 +85,7 @@ func (c *CreateSet) translateCreateHashOtherToCommandLine() []string {
 	return out
 }
 
-// CreateSet implementation of TranslateToCommandLine.
+// CreateSet implementation of TranslateToIPSetArgs.
 // CreateSet with bitmap:ip, bitmap:ip,mac and bitmap:port will use the appropriate IP or port range option.
 // For sets like:
 // - hash:ip
@@ -99,7 +99,7 @@ func (c *CreateSet) translateCreateHashOtherToCommandLine() []string {
 // - hash:net,port,net
 // - hash:net,iface
 // only option family will be returned if not default.
-func (c *CreateSet) TranslateToCommandLine() [][]string {
+func (c *CreateSet) TranslateToIPSetArgs() []string {
 	out := []string{c.Command.String(), c.Name, c.Type.String()}
 
 	switch c.Type {
@@ -134,7 +134,7 @@ func (c *CreateSet) TranslateToCommandLine() [][]string {
 	out = append(out, commentFlagOption(c.AllowsComments)...)
 	out = append(out, skbInfoOption(c.UseSKBInfo)...)
 
-	return [][]string{out}
+	return out
 }
 
 // CreateSet implementation of ValidateOptions.
@@ -156,7 +156,7 @@ func (c *CreateSet) IncludesMandatoryOptions() bool {
 
 // CreateSet implementation of Run.
 func (c *CreateSet) Run() error {
-	if out, err := utilities.RunIPSet(c.TranslateToCommandLine()[0]...); err != nil { // Expects just one line of arguments.
+	if out, err := utilities.RunIPSet(c.TranslateToIPSetArgs()...); err != nil {
 		return out.Error
 	}
 

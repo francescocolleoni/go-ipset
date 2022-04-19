@@ -7,7 +7,8 @@ type CommandName int
 const (
 	CommandNameCreate = iota
 	CommandNameAdd
-	CommandNameList
+	CommandNameDelete
+	CommandNameTest
 )
 
 // String returns the underlying command name of a given CommandName c.
@@ -17,8 +18,10 @@ func (c CommandName) String() string {
 		return "create"
 	case CommandNameAdd:
 		return "add"
-	case CommandNameList:
-		return "list"
+	case CommandNameDelete:
+		return "del"
+	case CommandNameTest:
+		return "test"
 
 	default:
 		return "" // Unsupported command
@@ -47,8 +50,7 @@ func (f ProtocolFamily) String() string {
 // Command defines the interface that all go-ipset commands must implement so that they can be run.
 type Command interface {
 	// TranslateToIPSetArgs returns the list of arguments that will actually be sent to ipset.
-	// This method returns an array of arrays of arguments, supporting multiple calls to ipset.
-	TranslateToIPSetArgs() [][]string
+	TranslateToIPSetArgs() []string
 
 	// IncludesMandatoryOptions returns true if mandatory options of the command are defined.
 	IncludesMandatoryOptions() bool
