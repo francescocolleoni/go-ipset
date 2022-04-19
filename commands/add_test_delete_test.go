@@ -179,7 +179,7 @@ func TestDeleteSetTranslateToCommandLine(t *testing.T) {
 	}
 }
 
-func TestAddDeleteSetValidate(t *testing.T) {
+func TestAddSetValidate(t *testing.T) {
 	type test struct {
 		command *AddDeleteEntry
 		expects bool
@@ -309,11 +309,150 @@ func TestAddDeleteSetValidate(t *testing.T) {
 		{NewAddEntry(setName, set.SetTypeHashNetIFace, "invalid/invalidport,physdev:eth0"), false},
 
 		{NewAddListEntry(""), false},
+		{NewAddListEntryBefore(setName, ""), true},
+		{NewAddListEntryBefore("", "otherset"), false},
+		{NewAddListEntryBefore(setName, ""), true},
+		{NewAddListEntryBefore("", "otherset"), false},
+	}
+
+	for i, test := range tests {
+		result := test.command.IncludesMandatoryOptions()
+		if result != test.expects {
+			t.Errorf("expectation %d failed: %v != %v (expected)", i+1, result, test.expects)
+		}
+	}
+}
+
+func TestDeleteSetValidate(t *testing.T) {
+	type test struct {
+		command *AddDeleteEntry
+		expects bool
+	}
+
+	const setName = "testset"
+	tests := []test{
+		// Valid.
+		{NewDeleteEntry(setName, set.SetTypeBitmapIP, "1.1.1.1"), true},
+		{NewDeleteEntry(setName, set.SetTypeBitmapIP, "1.1.1.1-2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeBitmapIP, "1.1.1.1/10"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeBitmapIPMAC, "1.1.1.1"), true},
+		{NewDeleteEntry(setName, set.SetTypeBitmapIPMAC, "1.1.1.1,aa:bb:cc:11:22:33"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeBitmapPort, "12345"), true},
+		{NewDeleteEntry(setName, set.SetTypeBitmapPort, "tcp:56789"), true},
+		{NewDeleteEntry(setName, set.SetTypeBitmapPort, "12345-56789"), true},
+		{NewDeleteEntry(setName, set.SetTypeBitmapPort, "tcp:12345-56789"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIP, "1.1.1.1"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPMAC, "1.1.1.1,aa:bb:cc:11:22:33"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPPort, "1.1.1.1,56789"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPort, "1.1.1.1,tcp:56789"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortIP, "1.1.1.1,56789,2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortIP, "1.1.1.1,tcp:56789,2.2.2.2"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortNet, "1.1.1.1,56789,2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortNet, "1.1.1.1,56789,2.2.2.2/10"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortNet, "1.1.1.1,tcp:56789,2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortNet, "1.1.1.1,tcp:56789,2.2.2.2/10"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPMark, "1.1.1.1,10"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashMAC, "aa:bb:cc:11:22:33"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNet, "1.1.1.1"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNet, "1.1.1.1/10"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNetNet, "1.1.1.1,2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetNet, "1.1.1.1,2.2.2.2/10"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetNet, "1.1.1.1/10,2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetNet, "1.1.1.1/10,2.2.2.2/10"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNetPort, "1.1.1.1,56789"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPort, "1.1.1.1,tcp:56789"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPort, "1.1.1.1/10,56789"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPort, "1.1.1.1/10,tcp:56789"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1,56789,2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1,56789,2.2.2.2/10"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1,tcp:56789,2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1,tcp:56789,2.2.2.2/10"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1/10,56789,2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1/10,56789,2.2.2.2/10"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1/10,tcp:56789,2.2.2.2"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "1.1.1.1/10,tcp:56789,2.2.2.2/10"), true},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNetIFace, "1.1.1.1,eth0"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetIFace, "1.1.1.1,physdev:eth0"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetIFace, "1.1.1.1/10,eth0"), true},
+		{NewDeleteEntry(setName, set.SetTypeHashNetIFace, "1.1.1.1/10,physdev:eth0"), true},
+		{NewDeleteListEntry(setName), true},
+		{NewDeleteListEntryBefore(setName, "otherset"), true},
+		{NewDeleteListEntryAfter(setName, "otherset"), true},
+
+		// Not valid.
+		{NewDeleteEntry(setName, set.SetTypeBitmapIP, "invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeBitmapIP, "invalid-invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeBitmapIP, "invalid/invalidport"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeBitmapIPMAC, "invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeBitmapIPMAC, "invalid,invalidmac"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeBitmapPort, "invalidport"), false},
+		{NewDeleteEntry(setName, set.SetTypeBitmapPort, "tcp:invalidport"), false},
+		{NewDeleteEntry(setName, set.SetTypeBitmapPort, "invalidport-invalidport"), false},
+		{NewDeleteEntry(setName, set.SetTypeBitmapPort, "tcp:invalidport-invalidport"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIP, "invalid"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPMAC, "invalid,invalidmac"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPPort, "invalid,invalidport"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPort, "invalid,tcp:invalidport"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortIP, "invalid,invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortIP, "invalid,tcp:invalidport,invalid"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortNet, "invalid,invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortNet, "invalid,invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortNet, "invalid,tcp:invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashIPPortNet, "invalid,tcp:invalidport,invalid"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashIPMark, "invalid,10"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashMAC, "invalidmac"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNet, "invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNet, "invalid/invalidport"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNetNet, "invalid,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetNet, "invalid,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetNet, "invalid/invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetNet, "invalid/invalidport,invalid"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNetPort, "invalid,invalidport"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPort, "invalid,tcp:invalidport"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPort, "invalid/invalidport,invalidport"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPort, "invalid/invalidport,tcp:invalidport"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "invalid,invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "invalid,invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "invalid,tcp:invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "invalid,tcp:invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "invalid/invalidport,invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "invalid/invalidport,invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "invalid/invalidport,tcp:invalidport,invalid"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetPortNet, "invalid/invalidport,tcp:invalidport,invalid"), false},
+
+		{NewDeleteEntry(setName, set.SetTypeHashNetIFace, "invalid,eth0"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetIFace, "invalid,physdev:eth0"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetIFace, "invalid/invalidport,eth0"), false},
+		{NewDeleteEntry(setName, set.SetTypeHashNetIFace, "invalid/invalidport,physdev:eth0"), false},
+
 		{NewDeleteListEntry(""), false},
-		{NewAddListEntryBefore(setName, ""), true},
-		{NewAddListEntryBefore("", "otherset"), false},
-		{NewAddListEntryBefore(setName, ""), true},
-		{NewAddListEntryBefore("", "otherset"), false},
 		{NewDeleteListEntryAfter(setName, ""), true},
 		{NewDeleteListEntryAfter("", "otherset"), false},
 		{NewDeleteListEntryAfter(setName, ""), true},
