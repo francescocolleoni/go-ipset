@@ -2,9 +2,11 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/francescocolleoni/go-ipset/set"
+	"github.com/francescocolleoni/go-ipset/utilities"
 )
 
 func TestAddSetTranslateToCommandLine(t *testing.T) {
@@ -608,4 +610,124 @@ func TestTestSetValidate(t *testing.T) {
 			t.Errorf("expectation %d failed: %v != %v (expected)", i+1, result, test.expects)
 		}
 	}
+}
+
+func TestAddTestDelete(t *testing.T) {
+	type test struct {
+		create       *CreateSet
+		add          []*AddTestDeleteEntry // 1st command to be run.
+		mustExist    []*AddTestDeleteEntry // 2nd command to be run.
+		mustNotExist []*AddTestDeleteEntry // 2nd command to be run.
+		delete       []*AddTestDeleteEntry // 3rd command to be run.
+	}
+
+	const setName = "testset"
+	tests := []test{
+		{
+			create: NewCreateBitmapIP(setName, "192.168.0.0/16", 0, 0, false, false, false),
+			add:    []*AddTestDeleteEntry{NewAddEntry(setName, set.SetTypeBitmapIP, "192.168.1.0/24")},
+			mustExist: []*AddTestDeleteEntry{
+				NewTestEntry(setName, set.SetTypeBitmapIP, "192.168.1.1"),
+				NewTestEntry(setName, set.SetTypeBitmapIP, "192.168.1.10"),
+				NewTestEntry(setName, set.SetTypeBitmapIP, "192.168.1.100"),
+			},
+			mustNotExist: []*AddTestDeleteEntry{
+				NewTestEntry(setName, set.SetTypeBitmapIP, "192.192.1.1"),
+				NewTestEntry(setName, set.SetTypeBitmapIP, "192.192.1.10"),
+			},
+			delete: []*AddTestDeleteEntry{NewDeleteEntry(setName, set.SetTypeBitmapIP, "192.168.1.1")},
+		},
+
+		{
+			create: NewCreateHashMAC(setName, 0, 0, 0, false, false, false),
+			add: []*AddTestDeleteEntry{
+				NewAddEntry(setName, set.SetTypeHashMAC, "01:02:03:04:05:06"),
+				NewAddEntry(setName, set.SetTypeHashMAC, "01:02:03:04:05:07"),
+			},
+			mustExist: []*AddTestDeleteEntry{
+				NewTestEntry(setName, set.SetTypeHashMAC, "01:02:03:04:05:06"),
+				NewTestEntry(setName, set.SetTypeHashMAC, "01:02:03:04:05:07"),
+			},
+			mustNotExist: []*AddTestDeleteEntry{
+				NewTestEntry(setName, set.SetTypeHashMAC, "01:02:03:04:05:08"),
+			},
+			delete: []*AddTestDeleteEntry{
+				NewTestEntry(setName, set.SetTypeHashMAC, "01:02:03:04:05:06"),
+				NewTestEntry(setName, set.SetTypeHashMAC, "01:02:03:04:05:07"),
+			},
+		},
+
+		{
+			create: NewCreateHashNetIFace(setName, ProtocolFamilyDefault, 0, 0, 0, false, false, false),
+			add: []*AddTestDeleteEntry{
+				NewAddEntry(setName, set.SetTypeHashNetIFace, "192.168.0.0/24,eth0"),
+			},
+			mustExist: []*AddTestDeleteEntry{
+				NewTestEntry(setName, set.SetTypeHashNetIFace, "192.168.0.0/24,eth0"),
+			},
+			mustNotExist: []*AddTestDeleteEntry{
+				NewTestEntry(setName, set.SetTypeHashNetIFace, "10.1.0.0/16,eth1"),
+			},
+			delete: []*AddTestDeleteEntry{
+				NewTestEntry(setName, set.SetTypeHashNetIFace, "192.168.0.0/24,eth0"),
+			},
+		},
+	}
+
+	for i, test := range tests {
+		utilities.RunIPSet("destroy", test.create.Name)
+		defer utilities.RunIPSet("destroy", test.create.Name)
+
+		createCommand := fmt.Sprintf("%v", test.create.TranslateToIPSetArgs())
+		createCommand = strings.ReplaceAll(createCommand, "[", "")
+		createCommand = strings.ReplaceAll(createCommand, "]", "")
+
+		t.Logf("[%02d] running create, add, test, delete test set", i+1)
+		t.Logf("  - [create] running %s", createCommand)
+		if err := test.create.Run(); err != nil {
+			t.Errorf("create command %d failed: %v", i+1, err)
+			continue
+		}
+
+		t.Logf("  - [add]")
+		for j, command := range test.add {
+			logTestAddTestDeleteCommandLine(t, command, j)
+			if err := command.Run(); err != nil {
+				t.Errorf("add command %d.%d failed: %v", i+1, j+1, err)
+			}
+		}
+
+		t.Logf("  - [must exist]")
+		for j, command := range test.mustExist {
+			logTestAddTestDeleteCommandLine(t, command, j)
+			if err := command.Run(); err != nil {
+				t.Errorf("containment test %d.%d for %s in %s failed: %v", i+1, j+1, command.Entry, setName, err)
+			}
+		}
+
+		t.Logf("  - [must not exist]")
+		for j, command := range test.mustNotExist {
+			logTestAddTestDeleteCommandLine(t, command, j)
+			if err := command.Run(); err == nil {
+				t.Errorf("containment test %d.%d for %s in %s failed: target should not exist", i+1, j+1, command.Entry, setName)
+			}
+		}
+
+		t.Log("  - [delete]")
+		for j, command := range test.delete {
+			logTestAddTestDeleteCommandLine(t, command, j)
+			if err := command.Run(); err != nil {
+				t.Errorf("delete command %d.%d failed: %v", i+1, j+1, err)
+			}
+		}
+	}
+}
+
+// Support functions (used only for tests).
+func logTestAddTestDeleteCommandLine(t *testing.T, c *AddTestDeleteEntry, i int) {
+	command := fmt.Sprintf("%v", c.TranslateToIPSetArgs())
+	command = strings.ReplaceAll(command, "[", "")
+	command = strings.ReplaceAll(command, "]", "")
+
+	t.Logf("    - [%02d] running ipset %s", i+1, command)
 }

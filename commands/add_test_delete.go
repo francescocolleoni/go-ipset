@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/francescocolleoni/go-ipset/set"
+	"github.com/francescocolleoni/go-ipset/utilities"
 )
 
 // AddTestDeleteEntry defines ipset commands add or delete.
@@ -229,5 +230,21 @@ func (c *AddTestDeleteEntry) IncludesMandatoryOptions() bool {
 
 // AddTestDeleteEntry implementation of Run.
 func (c *AddTestDeleteEntry) Run() error {
-	return errors.New("not implemented")
+	switch c.Command {
+	case CommandNameAdd, CommandNameDelete:
+		if out, err := utilities.RunIPSet(c.TranslateToIPSetArgs()...); err != nil {
+			return out.Error
+		}
+
+		return nil
+	case CommandNameTest:
+		if out, err := utilities.RunIPSet(c.TranslateToIPSetArgs()...); err != nil {
+			return out.Error
+		} else {
+			// Command ipset does not return an error if the target is contained in the given set.
+			return nil
+		}
+	default:
+		return fmt.Errorf("command %s is not add, test or delete", c.Command.String())
+	}
 }
