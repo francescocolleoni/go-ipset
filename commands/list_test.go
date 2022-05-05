@@ -75,9 +75,6 @@ func TestListSetValidate(t *testing.T) {
 	}
 }
 func TestListSet(t *testing.T) {
-	// creo un set, poi verifico l'elenco degli indirizzi contenuti.
-	// I risultati sono sempre restituiti in ordine alfabetico per ragioni di leggibilità.
-
 	setName := "testset"
 	utilities.RunIPSet("destroy", setName)
 	defer utilities.RunIPSet("destroy", setName)
