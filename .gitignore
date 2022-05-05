@@ -1,0 +1,7 @@
+# Vagrant VM
+Vagrantfile
+vm/.vagrant
+gopkg.tar.gz
+
+# IDE
+.vscode/
