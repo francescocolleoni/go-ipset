@@ -1,6 +1,8 @@
 // Package commands contains definitions of all ipset commands supported by go-ipset.
 package commands
 
+import "encoding/xml"
+
 // CommandName defines a command of ipset supported by go-ipset.
 type CommandName int
 
@@ -9,6 +11,7 @@ const (
 	CommandNameAdd
 	CommandNameDelete
 	CommandNameTest
+	CommandNameList
 )
 
 // String returns the underlying command name of a given CommandName c.
@@ -22,6 +25,8 @@ func (c CommandName) String() string {
 		return "del"
 	case CommandNameTest:
 		return "test"
+	case CommandNameList:
+		return "list"
 
 	default:
 		return "" // Unsupported command
@@ -54,4 +59,20 @@ type Command interface {
 
 	// IncludesMandatoryOptions returns true if mandatory options of the command are defined.
 	IncludesMandatoryOptions() bool
+}
+
+// XML output support.
+type OxmlIPSets struct {
+	XMLName xml.Name    `xml:"ipsets"`
+	Sets    []OxmlIPSet `xml:"ipset"`
+}
+type OxmlIPSet struct {
+	XMLName xml.Name     `xml:"ipset"`
+	Name    string       `xml:"name,attr"`
+	Type    string       `xml:"type,attr"`
+	Members []OxmlMember `xml:"members>member"`
+}
+type OxmlMember struct {
+	XMLName xml.Name `xml:"member"`
+	Element string   `xml:"elem"`
 }
