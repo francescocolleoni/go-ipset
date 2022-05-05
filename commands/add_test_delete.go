@@ -228,7 +228,7 @@ func (c *AddTestDeleteEntry) IncludesMandatoryOptions() bool {
 	return len(c.TranslateToIPSetArgs()) > 0
 }
 
-// AddTestDeleteEntry implementation of Run.
+// Run executes an AddTestDeleteEntry command.
 func (c *AddTestDeleteEntry) Run() error {
 	switch c.Command {
 	case CommandNameAdd, CommandNameDelete:

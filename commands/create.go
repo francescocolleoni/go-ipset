@@ -154,7 +154,7 @@ func (c *CreateSet) IncludesMandatoryOptions() bool {
 	}
 }
 
-// CreateSet implementation of Run.
+// Run executes a CreateSet command.
 func (c *CreateSet) Run() error {
 	if out, err := utilities.RunIPSet(c.TranslateToIPSetArgs()...); err != nil {
 		return out.Error

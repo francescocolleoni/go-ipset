@@ -54,7 +54,4 @@ type Command interface {
 
 	// IncludesMandatoryOptions returns true if mandatory options of the command are defined.
 	IncludesMandatoryOptions() bool
-
-	// Run sends to ipset a command, which may consist of many calls to ipset.
-	Run() error
 }
