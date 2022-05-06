@@ -21,6 +21,7 @@ const (
 	SetTypeHashNetPortNet
 	SetTypeHashNetIFace
 	SetTypeListSet
+	SetTypeUnsupported
 )
 
 // String returns the string representation of a given SetType s.
@@ -66,5 +67,49 @@ func (s SetType) String() string {
 
 	default:
 		return "" // Unsupported type
+	}
+}
+func SetTypeWithString(in string) SetType {
+	switch in {
+	// Bitmap.
+	case "bitmap:ip":
+		return SetTypeBitmapIP
+	case "bitmap:ip,mac":
+		return SetTypeBitmapIPMAC
+	case "bitmap:port":
+		return SetTypeBitmapPort
+
+		// Hash.
+	case "hash:ip":
+		return SetTypeHashIP
+	case "hash:mac":
+		return SetTypeHashMAC
+	case "hash:ip,mac":
+		return SetTypeHashIPMAC
+	case "hash:net":
+		return SetTypeHashNet
+	case "hash:net,net":
+		return SetTypeHashNetNet
+	case "hash:ip,port":
+		return SetTypeHashIPPort
+	case "hash:net,port":
+		return SetTypeHashNetPort
+	case "hash:ip,port,ip":
+		return SetTypeHashIPPortIP
+	case "hash:ip,port,net":
+		return SetTypeHashIPPortNet
+	case "hash:ip,mark":
+		return SetTypeHashIPMark
+	case "hash:net,port,net":
+		return SetTypeHashNetPortNet
+	case "hash:net,iface":
+		return SetTypeHashNetIFace
+
+		// List.
+	case "list:set":
+		return SetTypeListSet
+
+	default:
+		return SetTypeUnsupported
 	}
 }

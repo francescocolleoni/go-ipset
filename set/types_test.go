@@ -35,3 +35,30 @@ func TestSetType_String(t *testing.T) {
 		}
 	}
 }
+func TestSetType_InitWithString(t *testing.T) {
+	tests := map[string]SetType{
+		"bitmap:ip":         SetTypeBitmapIP,
+		"bitmap:ip,mac":     SetTypeBitmapIPMAC,
+		"bitmap:port":       SetTypeBitmapPort,
+		"hash:ip":           SetTypeHashIP,
+		"hash:ip,mac":       SetTypeHashIPMAC,
+		"hash:ip,port":      SetTypeHashIPPort,
+		"hash:ip,port,ip":   SetTypeHashIPPortIP,
+		"hash:ip,port,net":  SetTypeHashIPPortNet,
+		"hash:ip,mark":      SetTypeHashIPMark,
+		"hash:mac":          SetTypeHashMAC,
+		"hash:net":          SetTypeHashNet,
+		"hash:net,net":      SetTypeHashNetNet,
+		"hash:net,port":     SetTypeHashNetPort,
+		"hash:net,port,net": SetTypeHashNetPortNet,
+		"hash:net,iface":    SetTypeHashNetIFace,
+		"list:set":          SetTypeListSet,
+		"":                  SetTypeUnsupported,
+	}
+
+	for key, expectation := range tests {
+		if result := SetTypeWithString(key); result != expectation {
+			t.Errorf("expectation failed for key %v: \"%s\" != \"%s\" (expected)", key, result, expectation)
+		}
+	}
+}
