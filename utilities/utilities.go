@@ -3,7 +3,6 @@
 package utilities
 
 import (
-	"errors"
 	"fmt"
 	"os/exec"
 	"regexp"
@@ -83,7 +82,7 @@ func rewriteIPSetErrorFromCombinedOutput(out []byte, err error) error {
 
 	reason := regexp.MustCompile(`^ipset v[0-9]+[\.0-9]*[\.0-9]*:\s`).ReplaceAll(out, []byte{})
 	reason = regexp.MustCompile("Try `ipset help' for more information.").ReplaceAll(reason, []byte{})
-	return errors.New(fmt.Sprintf(`ipset returned error "%s"`, strings.Trim(string(reason), "\n")))
+	return fmt.Errorf(`ipset returned error "%s"`, strings.Trim(string(reason), "\n"))
 }
 
 // runCommand runs a generic command followed by a list of arguments.

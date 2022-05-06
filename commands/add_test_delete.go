@@ -86,7 +86,7 @@ func NewTestListEntryAfter(name, afterSet string) *AddTestDeleteEntry {
 	return &AddTestDeleteEntry{Command: CommandNameTest, Name: name, Type: set.SetTypeListSet, AfterSet: afterSet}
 }
 
-// AddTestDeleteEntry implementation of TranslateToIPSetArgs..
+// AddTestDeleteEntry implementation of TranslateToIPSetArgs.
 func (c *AddTestDeleteEntry) TranslateToIPSetArgs() []string {
 	makeArgs := func(args ...string) []string {
 		out := []string{c.Command.String(), c.Name}
@@ -228,7 +228,7 @@ func (c *AddTestDeleteEntry) IncludesMandatoryOptions() bool {
 	return len(c.TranslateToIPSetArgs()) > 0
 }
 
-// AddTestDeleteEntry implementation of Run.
+// Run executes an AddTestDeleteEntry command.
 func (c *AddTestDeleteEntry) Run() error {
 	switch c.Command {
 	case CommandNameAdd, CommandNameDelete:
