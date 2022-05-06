@@ -13,6 +13,8 @@ const (
 	CommandNameTest
 	CommandNameList
 	CommandNameFlush
+	CommandNameDestroy
+	CommandNameExists
 )
 
 // String returns the underlying command name of a given CommandName c.
@@ -30,6 +32,10 @@ func (c CommandName) String() string {
 		return "list"
 	case CommandNameFlush:
 		return "flush"
+	case CommandNameDestroy:
+		return "destroy"
+	case CommandNameExists:
+		return "-L"
 
 	default:
 		return "" // Unsupported command

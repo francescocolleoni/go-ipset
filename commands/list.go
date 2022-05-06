@@ -2,7 +2,6 @@ package commands
 
 import (
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -49,17 +48,19 @@ func (c *ListSet) Run() ([]string, error) {
 	var xmlOut OxmlIPSets
 	if err := xml.Unmarshal([]byte(out.Out), &xmlOut); err != nil {
 		return nil, err // Cannot decode output.
-	} else if len(xmlOut.Sets) != 1 {
-		return nil, fmt.Errorf("expected 1 set, received %d", len(xmlOut.Sets))
-	} else if xmlOut.Sets[0].Name != c.Name {
-		return nil, errors.New("unexpected target set")
 	}
 
-	set := xmlOut.Sets[0]
-	members := make([]string, len(set.Members))
-	for i, member := range set.Members {
-		members[i] = member.Element
+	for _, set := range xmlOut.Sets {
+		if set.Name != c.Name {
+			continue
+		}
+
+		members := make([]string, len(set.Members))
+		for i, member := range set.Members {
+			members[i] = member.Element
+		}
+		return members, nil
 	}
 
-	return members, nil
+	return nil, fmt.Errorf(`set named "%s" cannot be found`, c.Name)
 }
