@@ -5,7 +5,7 @@ package set
 type SetType int
 
 const (
-	SetTypeBitmapIP = iota
+	SetTypeBitmapIP SetType = iota
 	SetTypeBitmapIPMAC
 	SetTypeBitmapPort
 	SetTypeHashIP
